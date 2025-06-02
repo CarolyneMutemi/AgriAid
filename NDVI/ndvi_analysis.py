@@ -1,9 +1,10 @@
 import ee
-from GEE_auth import initialize_gee
+from .GEE_auth import initialize_gee
 import pandas as pd
 from datetime import datetime, timedelta
-from typing import Dict
-from ndvi_utils import create_farm_boundary
+from typing import Dict, Optional
+from langchain_core.tools import tool
+from .ndvi_utils import create_farm_boundary
 
 
 def collect_ndvi_data(farm_geometry, start_date, end_date, satellite='LANDSAT8'):
@@ -127,7 +128,7 @@ def collect_ndvi_data(farm_geometry, start_date, end_date, satellite='LANDSAT8')
 
 def analyze_ndvi_trends(ndvi_results: Dict, trend_analysis: str = 'basic') -> Dict:
     """
-    Analyze trends in NDVI data
+    Analyze trends in NDVI data.
     
     Parameters:
     ndvi_results: Results from collect_ndvi_data (must contain 'data' key with list of observations)
@@ -174,21 +175,76 @@ def analyze_ndvi_trends(ndvi_results: Dict, trend_analysis: str = 'basic') -> Di
         }
     }
     
-    return analysis
+    return 
+
+
+def ndvi_analysis_for_ai(county: str, subcounty: str, ward: str, 
+                         start_date: Optional[str], end_date: Optional[str] ):
+    """Perform NDVI analysis for a specific ward
+
+    This analysis can be used to identify changes in vegetation health over time, so you can tell the farmer if their farm is improving or declining.
+    Also, it can be used to identify seasonal patterns in vegetation health, which can help farmers plan their planting and harvesting schedules.
+    Also, it tells the area's climate and weather patterns, which can help farmers make better decisions about when to plant and harvest their crops.
+    Args:
+        county (str): County name
+        subcounty (str): Subcounty name
+        ward (str): Ward name
+        start_date (Optional[str]): Start date in 'YYYY-MM-DD' format
+        end_date (Optional[str]): End date in 'YYYY-MM-DD' format
+        Returns:
+        Dict: Analysis results including NDVI data and trends
+    """
+    from regions.get_region import get_ward_data
+
+    if initialize_gee():
+        ward_data = get_ward_data(county, subcounty, ward)
+        if not ward_data:
+            return {'error': 'Ward data not found'}
+        farm_coords = ward_data['centroid']
+        farm_area = create_farm_boundary(farm_coords)
+        if not farm_area:
+            return {'error': 'Invalid farm area coordinates'}
+        if not start_date or not end_date:
+            # Default to last 6 months if no dates provided
+            end_date = datetime.now().strftime('%Y-%m-%d')
+            start_date = (datetime.now() - timedelta(days=180)).strftime('%Y-%m-%d')
+        try:
+            ndvi_results = collect_ndvi_data(
+                farm_area,
+                start_date,
+                end_date,
+                satellite='LANDSAT8'  # Default to Landsat 8
+            )
+            if 'error' in ndvi_results:
+                return ndvi_results
+            # Perform trend analysis
+            trend_analysis = analyze_ndvi_trends(ndvi_results, trend_analysis='basic')
+            return {
+                'ward': ward,
+                'county': county,
+                'subcounty': subcounty,
+                'ndvi_results': ndvi_results,
+                'trend_analysis': trend_analysis
+            }
+        except Exception as e:
+            return {'error': str(e)}
 
 # Example usage
 if __name__ == "__main__":
-    # Make sure GEE is initialized first
-    if initialize_gee():
+    ndvi_analysis = ndvi_analysis_for_ai('Isiolo', 'Isiolo', 'Wabera', '2023-01-01', '2023-12-31')
+    print(ndvi_analysis)
 
-        # Create farm boundary
-        farm_coords = [[-99.25, 36.08], [-99.18, 36.12]]
-        farm_area = create_farm_boundary(farm_coords)
+    # Make sure GEE is initialized first
+    # if initialize_gee():
+
+    #     # Create farm boundary
+    #     farm_coords = [[-99.25, 36.08], [-99.18, 36.12]]
+    #     farm_area = create_farm_boundary(farm_coords)
         
-        # Get NDVI data for the last 6 months
-        from datetime import datetime, timedelta
-        end_date = datetime.now()
-        start_date = end_date - timedelta(days=180)
+    #     # Get NDVI data for the last 6 months
+    #     from datetime import datetime, timedelta
+    #     end_date = datetime.now()
+    #     start_date = end_date - timedelta(days=180)
         
         # ndvi_results = collect_ndvi_data(
         #     farm_area,
@@ -198,19 +254,22 @@ if __name__ == "__main__":
         # )
 
         # Short range (daily data)
-        daily_data = collect_ndvi_data(farm_area, '2023-06-01', '2023-08-31')
+        # daily_data = collect_ndvi_data(farm_area, '2023-06-01', '2023-08-31')
 
         # Medium range (weekly composites)
-        weekly_data = collect_ndvi_data(farm_area, '2022-01-01', '2022-12-31')
+        # weekly_data = collect_ndvi_data(farm_area, '2022-01-01', '2022-12-31')
 
         # Long range (monthly composites)
-        monthly_data = collect_ndvi_data(farm_area, '2020-01-01', '2023-12-31')
+        # monthly_data = collect_ndvi_data(farm_area, '2020-01-01', '2023-12-31')
 
-        print("Daily NDVI Data:", daily_data)
-        print("Weekly NDVI Data:", weekly_data)
-        print("Monthly NDVI Data:", monthly_data)
-        # Analyze trends
-        trend_analysis = analyze_ndvi_trends(monthly_data, trend_analysis='basic')
-        print("Trend Analysis:", trend_analysis)
+        # Ndvi analysis by ai tool
+
+        # print("Daily NDVI Data:", daily_data)
+        # print("Weekly NDVI Data:", weekly_data)
+        # print("Monthly NDVI Data:", monthly_data)
+        # # Analyze trends
+        # trend_analysis = analyze_ndvi_trends(monthly_data, trend_analysis='basic')
+        # print("Trend Analysis:", trend_analysis)
+        
         
         

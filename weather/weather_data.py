@@ -9,14 +9,15 @@ import logging
 import json
 from pathlib import Path
 from dotenv import load_dotenv
-from utils import capitalize_words
+from langchain_core.tools import tool
+from .utils import capitalize_words
 
 
 load_dotenv()  # Load environment variables from .env file if available
 
 # Configure logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+# logging.basicConfig(level=logging.INFO)
+# logger = logging.getLogger(__name__)
 
 kenyan_wards = {}
 
@@ -47,10 +48,11 @@ def retry_on_failure(max_retries: int = MAX_RETRIES):
                     last_exception = e
                     if attempt < max_retries - 1:
                         wait_time = 2 ** attempt  # Exponential backoff
-                        logger.warning(f"API call failed (attempt {attempt + 1}), retrying in {wait_time}s: {e}")
+                        # logger.warning(f"API call failed (attempt {attempt + 1}), retrying in {wait_time}s: {e}")
                         time.sleep(wait_time)
                     else:
-                        logger.error(f"API call failed after {max_retries} attempts: {e}")
+                        # logger.error(f"API call failed after {max_retries} attempts: {e}")
+                        print(f"API call failed after {max_retries} attempts: {e}")
             raise last_exception
         return wrapper
     return decorator
@@ -235,7 +237,7 @@ def extract_farmer_relevant_data(weather_data: Dict) -> Dict:
         return farmer_data
     
     except Exception as e:
-        logger.error(f"Error extracting farmer data: {e}")
+        # logger.error(f"Error extracting farmer data: {e}")
         return {}
 
 def format_weather_for_sms(weather_data: Dict, location_name: str = "") -> str:
@@ -263,7 +265,7 @@ def format_weather_for_sms(weather_data: Dict, location_name: str = "") -> str:
         return sms_text.strip()
     
     except Exception as e:
-        logger.error(f"Error formatting SMS: {e}")
+        # logger.error(f"Error formatting SMS: {e}")
         return "Weather data unavailable"
 
 def get_farming_alerts(weather_data: Dict) -> List[str]:
@@ -310,7 +312,7 @@ def get_farming_alerts(weather_data: Dict) -> List[str]:
         return alerts
     
     except Exception as e:
-        logger.error(f"Error generating farming alerts: {e}")
+        # logger.error(f"Error generating farming alerts: {e}")
         return []
 
 
@@ -351,6 +353,7 @@ def get_coordinates_by_region(county: str, subcounty: str, ward: str) -> Optiona
 
 
 # Main weather tool functions for the ReAct agent
+
 
 def get_weather_for_farmer(county: str,
                            subcounty: str = "",
@@ -436,7 +439,7 @@ def get_weather_for_farmer(county: str,
             }
     
     except Exception as e:
-        logger.error(f"Weather tool error: {e}")
+        # logger.error(f"Weather tool error: {e}")
         return {
             "success": False,
             "error": "general_error",

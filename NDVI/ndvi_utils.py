@@ -2,6 +2,7 @@ import ee
 import pandas as pd
 from datetime import datetime, timedelta
 from typing import Dict, List, Tuple
+from langchain_core.tools import tool
 
 
 def create_farm_boundary(coordinates, buffer_meters=0):
@@ -187,3 +188,5 @@ def generate_time_periods(start_date: str, end_date: str, period: str) -> List[D
             })
     
     return periods
+
+
