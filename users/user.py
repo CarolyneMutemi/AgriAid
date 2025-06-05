@@ -25,9 +25,10 @@ def register_user(phone_number: str, name: str) -> Dict[str, Any]:
 
 def get_user_by_phone_number(phone_number: str) -> Optional[Dict[str, Any]]:
     """
-    Retrieve user data from the database by phone number.
-    This will mainly be used to check if a user is registered and get their name.
+    This will mainly be used to check if a user is registered/exists in our database and get their name.
+    Retrieves user data from the database by phone number.
     """
+    print("Has been called with phone number:", phone_number)
     # Check Redis cache first
     cached_user = db_manager.redis_client.get(f"user:{phone_number}")
     if cached_user:

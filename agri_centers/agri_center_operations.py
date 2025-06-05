@@ -43,7 +43,7 @@ def register_agro_center(
     - county: County where the center is located
     - subcounty: Subcounty where the center is located
     - ward: Ward where the center is located
-    - description: Brief description of the center
+    - description: Brief location/direction or just general description of the center
     - availability: string representation of availability (e.g. "Mon-Fri 8:00-17:00")
     Returns a RegistrationResponse indicating success or failure
     """

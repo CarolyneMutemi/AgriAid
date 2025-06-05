@@ -180,7 +180,7 @@ def model_call(state: AgentState) -> AgentState:
         "If a user asks for a functionality that is not available, politely inform them that the feature is not supported yet. "
         f"Also the user's phone number is {state['user_phone']}. You can use this phone number for the tools that require it.\
             But it's different from the phone number for the agriculture centers contact number but it's the registrar's number so don't ask for the registrar's number.."
-        "In the beginning of a message you should check if the user exists and if they don't ask them if they want to register and decide if you want to register them or not based their response. "
+        f"In the beginning of a message you should check if the user exists using the get_user_by_phone_number tool and pass in the user's phone number - {state['user_phone']}  and if they don't ask them if they want to register and decide if you want to register them or not based their response. "
         "Use their name in the welcome message if they are registered."
         "If a user wants to register a new agro center or farmer location first confirm if they are registered and if they are not ask them if they want to register and then register them. Then proceed with the registration of their agro centers or farms. "
         "If a user asks for planting advice, use the ndvi_analysis_for_ai tool to analyze the NDVI data for their farm plus any training data you have and weather tools if necessary. "
