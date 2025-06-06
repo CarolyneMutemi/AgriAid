@@ -40,5 +40,5 @@ source venv/bin/activate
 # install dependencies
 pip3 install -r requirements.txt
 # set up virtual environment and install dependencies
-uvicorn main:app --reload
+uvicorn app:app --reload
 ```
